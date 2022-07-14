@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="./dist/tnt.min.js"></script>
+    <style>
+      .red {
+        color: red;
+      }
+      .green {
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div>
+        <p>Some content top.</p>
+        <p>
+          <span>tmp: </span>
+          <v data="tmp.value"></v>
+        </p>
+        <button onclick="appState.foo.push(1)">
+          Plus 1
+        </button>
+        <t-if cond="tmp.value % 2 === 0">
+          <button onclick="appState.foo.push(2)">
+            Plus 2
+          </button>
+        </t-if>
+        <t-else>
+          <span>It's odd!</span>
+        </t-else>
+        <p>Some content bottom.</p>
+      </div>
+    </div>
+  </body>
+  <script>
+    console.time("mount");
+    const appState = TNT.reactive({
+      foo: [],
+    });
+    const tmp = TNT.computed(() => {
+      let sum = 0;
+      appState.foo.forEach((v) => (sum += v));
+      return sum;
+    });
+    const app = new TNT.TNTApp(document.getElementById("root"));
+    console.timeEnd("mount");
+  </script>
+</html>
