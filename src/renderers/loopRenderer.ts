@@ -1,13 +1,13 @@
+import { deepClone, evaluate } from "../lib/common";
 import {
+  h,
+  VNode,
   createVdomFromExistingElements,
   getAttributesOfElement,
-} from "../index";
-import { deepClone, evaluate } from "../lib/common";
-import { h, VNode } from "../vdom";
+} from "../vdom";
 import { Renderer } from "./index";
 
 const getVNodeFromElement = (node: Element): VNode => {
-  // console.log(node.children, node);
   let children: VNode[] | string = "";
   if (!node.children.length) {
     children = [];
@@ -41,7 +41,7 @@ const loopRenderer = (currentNode: VNode, extraContext: string) => {
     createVdomFromExistingElements(
       currentChild,
       currentChild.el,
-      `const ${localName} = ${JSON.stringify(currentData)}; ${extraContext}`
+      `const ${localName} = ${JSON.stringify(currentData)}; ${extraContext};`
     );
     (currentNode.children as VNode[]).push(currentChild);
   }
