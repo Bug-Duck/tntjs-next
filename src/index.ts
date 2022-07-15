@@ -1,11 +1,73 @@
 /* eslint-disable no-new-func */
 import { deepClone } from "./lib/common";
 import { watchEffect } from "./reactivity";
+import renderers from "./renderers/index";
 import { h, mount, patch, VNode } from "./vdom";
 
 export interface RootComponent {
   render: () => VNode;
 }
+
+export const getAttributesOfElement = (
+  element: Element
+): Record<string, string> => {
+  const attributes = {};
+  for (let i = 0; i < element.attributes.length; i++)
+    attributes[element.attributes[i].name] = element.attributes[i].value;
+  return attributes;
+};
+
+export const createVdomFromExistingElements = (
+  rootVNode: VNode,
+  container: Element,
+  extraContext = ""
+) => {
+  let isTextCreated = false;
+  [...container.children].forEach((child, index) => {
+    let shouldRender = true;
+    let injectContext = extraContext;
+    const currentNode = h(
+      child.tagName.toLowerCase(),
+      getAttributesOfElement(child),
+      []
+    );
+    currentNode.el = child;
+    renderers.renderers.forEach((renderer) => {
+      if (!renderer.watchTags.includes(currentNode.tag)) return;
+      const renderResult = renderer.renderer(
+        currentNode,
+        injectContext,
+        rootVNode,
+        index
+      );
+      if (typeof renderResult === "boolean") {
+        shouldRender = !renderResult ? renderResult : shouldRender;
+        return;
+      }
+      shouldRender = renderResult.shouldRender || shouldRender;
+      for (const variableName in renderResult.injectVariables) {
+        injectContext += `const ${variableName} = ${JSON.stringify(
+          renderResult.injectVariables[variableName]
+        )};`;
+      }
+    });
+    if (shouldRender) {
+      createVdomFromExistingElements(currentNode, child, injectContext);
+    }
+    (rootVNode.children as VNode[]).push(currentNode);
+    if (rootVNode.tag === "t-for") console.log(rootVNode);
+  });
+  if (rootVNode.children.length) {
+    return;
+  }
+  container.childNodes.forEach((child) => {
+    if (isTextCreated) return;
+    if (!child.TEXT_NODE) return;
+    if (!child.textContent.trim()) return;
+    rootVNode.children = child.textContent;
+    isTextCreated = true;
+  });
+};
 
 export class TNTApp {
   constructor(container: Element) {
@@ -17,14 +79,14 @@ export class TNTApp {
       const currentContainer = currentNode?.el ?? container.children[0];
       const vnode = h(
         currentContainer.tagName,
-        this.getAttributesOfElement(currentContainer),
+        getAttributesOfElement(currentContainer),
         []
       );
       vnode.el = currentContainer;
-      this.createVdomFromExistingElements(vnode, currentContainer);
+      createVdomFromExistingElements(vnode, currentContainer);
       currentNode = h(
         container.tagName,
-        this.getAttributesOfElement(currentContainer),
+        getAttributesOfElement(currentContainer),
         vnode.children,
         currentContainer
       );
@@ -44,64 +106,6 @@ export class TNTApp {
 
   #removeUpdatedElements(element: Element, toRemove: Element) {
     if (element.children.length > 1) toRemove.remove();
-  }
-
-  getAttributesOfElement(element: Element): Record<string, string> {
-    const attributes = {};
-    for (let i = 0; i < element.attributes.length; i++)
-      attributes[element.attributes[i].name] = element.attributes[i].value;
-    return attributes;
-  }
-
-  createVdomFromExistingElements(rootVNode: VNode, container: Element) {
-    let isTextCreated = false;
-    [...container.children].forEach((child, index) => {
-      let shouldRender = true;
-      const currentNode = h(
-        child.tagName.toLowerCase(),
-        this.getAttributesOfElement(child),
-        []
-      );
-      currentNode.el = child;
-      if (currentNode.tag === "v") {
-        watchEffect(() => {
-          currentNode.children = Function(
-            `return ${currentNode.props.data}`
-          )().toString();
-        });
-      }
-      if (currentNode.tag === "t-if") {
-        watchEffect(() => {
-          const result = Function(`return ${currentNode.props.cond}`)();
-          shouldRender = !!result;
-        });
-      }
-      if (currentNode.tag === "t-else") {
-        const ifElement = (rootVNode.children as VNode[])[
-          rootVNode.children.length - 1
-        ];
-        if (index - 1 !== 0 && ifElement.tag === "t-if") {
-          watchEffect(() => {
-            const result = Function(`return ${ifElement.props.cond}`)();
-            shouldRender = !result;
-          });
-        }
-      }
-      if (shouldRender) {
-        this.createVdomFromExistingElements(currentNode, child);
-      }
-      (rootVNode.children as VNode[]).push(currentNode);
-    });
-    if (rootVNode.children.length) {
-      return;
-    }
-    container.childNodes.forEach((child) => {
-      if (isTextCreated) return;
-      if (!child.TEXT_NODE) return;
-      if (!child.textContent.trim()) return;
-      rootVNode.children = child.textContent;
-      isTextCreated = true;
-    });
   }
 }
 

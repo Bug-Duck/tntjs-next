@@ -18,5 +18,13 @@
     ],
     "rules": {
         "prettier/prettier": "error"
-    }
+    },
+    "overrides": [
+      {
+        "files": ["common.ts"],
+        "rules": {
+          "no-new-func": "off"
+        }
+      }
+    ]
 }

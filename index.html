@@ -6,14 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script src="./dist/tnt.min.js"></script>
-    <style>
-      .red {
-        color: red;
-      }
-      .green {
-        color: green;
-      }
-    </style>
   </head>
   <body>
     <div id="root">
@@ -23,17 +15,30 @@
           <span>tmp: </span>
           <v data="tmp.value"></v>
         </p>
-        <button onclick="appState.foo.push(1)">
-          Plus 1
-        </button>
+        <button onClick="() => appState.foo.push(1)">Plus 1</button>
+        <button onClick="() => appState.foo.push(2)">Plus 2</button>
         <t-if cond="tmp.value % 2 === 0">
-          <button onclick="appState.foo.push(2)">
-            Plus 2
-          </button>
+          <span> It's even! </span>
         </t-if>
         <t-else>
-          <span>It's odd!</span>
+          <span> It's odd! </span>
         </t-else>
+        <t-if cond="tmp.value % 10 === 0">
+          <span>Divided by 10! </span>
+        </t-if>
+        <t-if cond="tmp.value % 3 === 0">
+          <span>Divided by Three! </span>
+        </t-if>
+        <br />
+        <p>
+          <code>appState.foo</code>
+          <span> content:</span>
+        </p>
+        <t-for data="i in appState.foo">
+          <span>
+            <v data="`${i} `"></v>
+          </span>
+        </t-for>
         <p>Some content bottom.</p>
       </div>
     </div>

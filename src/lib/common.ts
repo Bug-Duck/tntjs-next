@@ -9,3 +9,11 @@ export const deepClone = (obj: any) => {
   }
   return newObj;
 };
+
+export const evaluate = (expression: string, extraContext = "") => {
+  try {
+    return Function(`${extraContext}; return ${expression};`)();
+  } catch (e) {
+    return e.toString();
+  }
+};

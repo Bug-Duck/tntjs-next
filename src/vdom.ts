@@ -1,3 +1,5 @@
+import { evaluate } from "./lib/common";
+
 export interface VNode {
   tag: string;
   props: Record<string, string>;
@@ -19,7 +21,10 @@ export const mount = (vnode: VNode, root: Element) => {
   // processing props
   for (const key in vnode.props) {
     const value = vnode.props[key];
-    // TODO: event listeners
+    if (key.startsWith("on")) {
+      el.addEventListener(key.slice(2).toLowerCase(), evaluate(value));
+      continue;
+    }
     el.setAttribute(key, value);
   }
   // processing children
