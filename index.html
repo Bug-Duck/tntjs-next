@@ -6,14 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script src="./dist/tnt.min.js"></script>
+    <style>
+      .green {
+        color: green;
+      }
+
+      .red {
+        color: red;
+      }
+    </style>
   </head>
   <body>
     <div id="root">
       <div>
-        <p>Some content top.</p>
+        <h1>Counter</h1>
         <p>
           <span>Sum: </span>
-          <v data="data.sum.value"></v>
+          <v
+            data="data.sum.value"
+            :class="(data.sum.value % 2 === 0 ? 'green' : 'red')"
+          ></v>
         </p>
         <button onClick="() => data.foo.push(1)">Plus 1</button>
         <button onClick="() => data.foo.push(-1)">Minus 1</button>
@@ -35,7 +47,6 @@
           </span>
         </t-for>
         <span>]</span>
-        <p>Some content bottom.</p>
       </div>
     </div>
   </body>

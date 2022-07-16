@@ -1,7 +1,7 @@
 /** An effect to be ran when its dependencies change. */
-type EffectType = () => void;
+export type EffectType = () => void;
 /** Objects that can be reactive. */
-type ReactiveType = object;
+export type ReactiveType = object;
 /** Map to store reactive object - dependencies - effects data. */
 type TargetMap = WeakMap<ReactiveType, Map<string, Set<EffectType>>>;
 

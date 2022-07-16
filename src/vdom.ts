@@ -1,4 +1,5 @@
 import { evaluate } from "./lib/common";
+import { watchEffect } from "./reactivity";
 import renderers from "./renderers/index";
 
 /** A Virtual Node representation. */
@@ -41,8 +42,22 @@ export const mount = (vnode: VNode, container: Element) => {
   // processing props
   for (const key in vnode.props) {
     const value = vnode.props[key];
+    if (key.startsWith(":")) {
+      if (key.startsWith(":on")) {
+        console.warn(
+          "[TNT warn] Using reactive binding and event listeners at the same time will cause the program to run not as expected.",
+          "Please extract logic or remove one of the effect bindings."
+        );
+      }
+      watchEffect(() => {
+        vnode.el.setAttribute(key.slice(1), evaluate(value));
+      });
+      vnode.el.removeAttribute(key);
+      continue;
+    }
     if (key.startsWith("on")) {
       el.addEventListener(key.slice(2).toLowerCase(), evaluate(value));
+      vnode.el.removeAttribute(key);
       continue;
     }
     el.setAttribute(key, value);
@@ -181,7 +196,6 @@ export const createVdomFromExistingElement = (
       createVdomFromExistingElement(currentNode, child, injectContext);
     }
     (rootVNode.children as VNode[]).push(currentNode);
-    if (rootVNode.tag === "t-for") console.log(rootVNode);
   });
   if (rootVNode.children.length) {
     return;

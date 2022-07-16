@@ -19,11 +19,17 @@ export const deepClone = (obj: any) => {
  * Evaluate an expression.
  * @param expression Expression to evaluate its value.
  * @param extraContext Some extra context to inject.
+ * @param shouldExecuate Whether or not to execuate the generated function.
  * @returns Evaluated result or error message.
  */
-export const evaluate = (expression: string, extraContext = "") => {
+export const evaluate = (
+  expression: string,
+  extraContext = "",
+  shouldExecuate = true
+) => {
   try {
-    return Function(`${extraContext}; return ${expression};`)();
+    const func = Function(`${extraContext}; return ${expression};`);
+    return shouldExecuate ? func() : func;
   } catch (e) {
     return e.toString();
   }
