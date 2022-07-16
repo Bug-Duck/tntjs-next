@@ -14,6 +14,7 @@ const config = {
   },
   watch: {
     exclude: ["*.html"],
+    buildDelay: 1000,
   },
   plugins: [typescript(), terser()],
 };

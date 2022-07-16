@@ -1,8 +1,7 @@
-/* eslint-disable no-new-func */
 import { deepClone } from "./lib/common";
 import { watchEffect } from "./reactivity";
 import {
-  createVdomFromExistingElements,
+  createVdomFromExistingElement,
   getAttributesOfElement,
   h,
   mount,
@@ -10,16 +9,18 @@ import {
   VNode,
 } from "./vdom";
 
-export interface RootComponent {
-  render: () => VNode;
-}
-
+/** Create a new TNTjs application. */
 export class TNTApp {
-  constructor(container: Element) {
+  /**
+   * Initialize and mount a new TNT Application.
+   * @param container The container element to mount with.
+   */
+  mount(container: Element) {
     let isMounted = false;
     let prevVdom: VNode | null = null;
     let currentNode = null;
 
+    // app lifecycle loop
     watchEffect(() => {
       const currentContainer = currentNode?.el ?? container.children[0];
       const vnode = h(
@@ -28,7 +29,7 @@ export class TNTApp {
         []
       );
       vnode.el = currentContainer;
-      createVdomFromExistingElements(vnode, currentContainer);
+      createVdomFromExistingElement(vnode, currentContainer);
       currentNode = h(
         container.tagName,
         getAttributesOfElement(currentContainer),
@@ -49,6 +50,11 @@ export class TNTApp {
     });
   }
 
+  /**
+   * Remove older child elements.
+   * @param element The root element to check children length.
+   * @param toRemove The child element to remove.
+   */
   #removeUpdatedElements(element: Element, toRemove: Element) {
     if (element.children.length > 1) toRemove.remove();
   }

@@ -3,6 +3,12 @@ import { watchEffect } from "../reactivity";
 import { VNode } from "../vdom";
 import { Renderer } from "./index";
 
+/**
+ * Render a variable (`<v />` tag).
+ * @param currentNode Node that need to be rendered.
+ * @param extraContext Some extra context to inject.
+ * @returns Whether to continue render `currentNode`'s children elements.
+ */
 const variableRenderer = (currentNode: VNode, extraContext: string) => {
   watchEffect(() => {
     currentNode.children = evaluate(

@@ -1,10 +1,16 @@
+/** An effect to be ran when its dependencies change. */
 type EffectType = () => void;
+/** Objects that can be reactive. */
 type ReactiveType = object;
+/** Map to store reactive object - dependencies - effects data. */
 type TargetMap = WeakMap<ReactiveType, Map<string, Set<EffectType>>>;
 
+/** Currently active running effects. */
 const activeEffects: EffectType[] = [];
+/** {@inheritDoc TargetMap} */
 export const targetMap: TargetMap = new WeakMap<TargetMap>();
 
+/** Callbasks when a trackable object changes. */
 interface TrackableCallback {
   onGet: (target: ReactiveType, key: string, receiver: any) => void;
   onSet: (
@@ -16,6 +22,12 @@ interface TrackableCallback {
   onDeleteProperty: (target: ReactiveType, key: string) => void;
 }
 
+/**
+ * Get a trackable proxy object and fire certain callbacks on certain events.
+ * @param obj The object to track updates.
+ * @param callbacks Callbacks to run when certain event was fired.
+ * @returns A proxy to the original object.
+ */
 export const getTrackableObject = (
   obj: ReactiveType,
   callbacks: TrackableCallback
@@ -51,12 +63,12 @@ export const getTrackableObject = (
   return proxy;
 };
 
-export const track = (
-  targetMap: TargetMap,
-  target: object,
-  key: string,
-  activeEffects: EffectType[]
-) => {
+/**
+ * Track the current running effect's dependencies.
+ * @param target The reactive object to track.
+ * @param key The key to fetch data from.
+ */
+export const track = (target: object, key: string) => {
   if (!activeEffects.length) return;
   let depsMap = targetMap.get(target);
   if (!depsMap) {
@@ -72,11 +84,12 @@ export const track = (
   activeEffects.forEach((effect) => dep.add(effect));
 };
 
-export const trigger = (
-  targetMap: TargetMap,
-  target: ReactiveType,
-  key: string
-) => {
+/**
+ * Trigger effects of certain dependencies.
+ * @param target The reactive object to trigger effects.
+ * @param key The key to fetch dependencies from.
+ */
+export const trigger = (target: ReactiveType, key: string) => {
   const depsMap = targetMap.get(target);
   if (!depsMap) return;
   const deps = depsMap.get(key);
@@ -87,39 +100,58 @@ export const trigger = (
   });
 };
 
+/**
+ * Watch an effect's dependencies.
+ * @param effect Effect to run when its dependencies changed.
+ */
 export const watchEffect = (effect: EffectType) => {
   activeEffects.push(effect);
   effect();
   activeEffects.pop();
 };
 
+/**
+ * Create a reactive object and enable two-way auto update.
+ * @param target The object to be made reactive.
+ * @returns The proxied reactive object.
+ */
 export const reactive = (target: ReactiveType) => {
   return getTrackableObject(target, {
     onGet(target, key) {
-      track(targetMap, target, key, activeEffects);
+      track(target, key);
     },
     onSet(target, key) {
-      trigger(targetMap, target, key);
+      trigger(target, key);
     },
     onDeleteProperty() {},
   });
 };
 
+/**
+ * Create a reactive reference to a plain value.
+ * @param raw A raw value to be reactive.
+ * @returns The proxied object with `.value` getters and setters.
+ */
 export const ref = (raw: ReactiveType) => {
   const r = {
     get value() {
-      track(targetMap, r, "value", activeEffects);
+      track(r, "value");
       return raw;
     },
     set value(newVal) {
       if (newVal === raw) return;
       raw = newVal;
-      trigger(targetMap, r, "value");
+      trigger(r, "value");
     },
   };
   return r;
 };
 
+/**
+ * Create a reactive computed value.
+ * @param getter Function to calculate the computed value.
+ * @returns A reference object to the computed value.
+ */
 export const computed = (getter: () => ReactiveType) => {
   const result = ref(null);
   watchEffect(() => (result.value = getter()));

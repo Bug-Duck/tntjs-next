@@ -44,7 +44,9 @@
     </div>
   </body>
   <script>
-    console.time("mount");
+    // mount 10000: 200ms / patch 10000: 334ms
+    // mount 100000: 1781ms / patch 100000: 3390ms
+    // kinda brute-force :(
     const appState = TNT.reactive({
       foo: [],
     });
@@ -53,7 +55,8 @@
       appState.foo.forEach((v) => (sum += v));
       return sum;
     });
-    const app = new TNT.TNTApp(document.getElementById("root"));
+    console.time("mount");
+    const app = new TNT.TNTApp().mount(document.getElementById("root"));
     console.timeEnd("mount");
   </script>
 </html>

@@ -1,13 +1,26 @@
 import { evaluate } from "./lib/common";
 import renderers from "./renderers/index";
 
+/** A Virtual Node representation. */
 export interface VNode {
+  /** Node tag name. */
   tag: string;
+  /** Node properties */
   props: Record<string, string>;
+  /** Node children */
   children: VNode[] | string;
+  /** Actual element in DOM for the current VNode. */
   el: Element;
 }
 
+/**
+ * Constructs a VNode.
+ * @param tag Tag name.
+ * @param props Tag attributes / properties.
+ * @param children Tag children.
+ * @param el Tag actual DOM element
+ * @returns Constructed Virtual DOM Node.
+ */
 export const h = (
   tag: string,
   props: Record<string, string> = {},
@@ -17,7 +30,13 @@ export const h = (
   return { tag, props, children, el };
 };
 
-export const mount = (vnode: VNode, root: Element) => {
+/**
+ * Mounts a VNode to an actual DOM element.
+ * @param vnode The root VNode to mount with.
+ * @param container The container DOM element to contain all generated nodes.
+ * @returns The container element with generated nodes appended.
+ */
+export const mount = (vnode: VNode, container: Element) => {
   const el = (vnode.el = document.createElement(vnode.tag));
   // processing props
   for (const key in vnode.props) {
@@ -31,15 +50,22 @@ export const mount = (vnode: VNode, root: Element) => {
   // processing children
   if (typeof vnode.children === "string") {
     el.textContent = vnode.children;
-    root.appendChild(el);
+    container.appendChild(el);
     return;
   }
   vnode.children.forEach((child) => {
     mount(child, el);
   });
-  root.appendChild(el);
+  container.appendChild(el);
+  return container;
 };
 
+/**
+ * Patches the current actual element to a new VNode and replace the older one.
+ * Note that this function will modify the DOM.
+ * @param n1 The old VNode to be replaced.
+ * @param n2 The newer VNode to update the current DOM to.
+ */
 export const patch = (n1: VNode, n2: VNode) => {
   if (n1.tag === n2.tag) {
     const el = (n2.el = n1.el);
@@ -97,6 +123,11 @@ export const patch = (n1: VNode, n2: VNode) => {
   throw new Error("Replacing root elements are not supported.");
 };
 
+/**
+ * Helper function to get and convert attributes from an element to use the object structure.
+ * @param element The element to get attributes from.
+ * @returns Attributes in a single object-like structure.
+ */
 export const getAttributesOfElement = (
   element: Element
 ): Record<string, string> => {
@@ -106,7 +137,13 @@ export const getAttributesOfElement = (
   return attributes;
 };
 
-export const createVdomFromExistingElements = (
+/**
+ * Generates a new VNode from existing elemnt.
+ * @param rootVNode The root VNode to append children to.
+ * @param container The container element to generate VNodes from.
+ * @param extraContext Some extra context data to pass to `evaulate()`.
+ */
+export const createVdomFromExistingElement = (
   rootVNode: VNode,
   container: Element,
   extraContext = ""
@@ -141,7 +178,7 @@ export const createVdomFromExistingElements = (
       }
     });
     if (shouldRender) {
-      createVdomFromExistingElements(currentNode, child, injectContext);
+      createVdomFromExistingElement(currentNode, child, injectContext);
     }
     (rootVNode.children as VNode[]).push(currentNode);
     if (rootVNode.tag === "t-for") console.log(rootVNode);
@@ -156,4 +193,34 @@ export const createVdomFromExistingElements = (
     rootVNode.children = child.textContent;
     isTextCreated = true;
   });
+};
+
+/**
+ * Create a new VNode from the given element.
+ * @param node Element to create VNode from.
+ * @returns The generated VNode object.
+ */
+export const createVNodeFromElement = (node: Element): VNode => {
+  let children: VNode[] | string = "";
+  // children edge cases handling
+  if (!node.children.length) {
+    children = [];
+  } else if (
+    node.children[0].nodeType === Node.TEXT_NODE &&
+    node.children[0].textContent.trim()
+  ) {
+    children = node.children[0].textContent;
+  } else {
+    children = [...node.children]
+      .filter(
+        (child) => child.children.length && child.children[0].textContent.trim()
+      )
+      .map((child) => createVNodeFromElement(child));
+  }
+  return h(
+    node.tagName.toLowerCase(),
+    getAttributesOfElement(node),
+    children,
+    node
+  );
 };

@@ -3,6 +3,18 @@ import { watchEffect } from "../reactivity";
 import { VNode } from "../vdom";
 import { Renderer } from "./index";
 
+/** Condition tags with `props.cond` property. */
+export const TAGS_WITH_CONDITION = ["t-if", "t-elif"];
+/** All condition tags, discarding its actual condition. */
+export const CONDITION_TAGS = ["t-if", "t-elif", "t-else"];
+
+/**
+ * Render a `<t-if />` element.
+ * This renderer will render its children if `currentNode.props.cond` returns a truthy value, not rendering otherwise.
+ * @param currentNode Current node to check condition.
+ * @param extraContext Some extra variable context to inject.
+ * @returns Whether should continue to render currentNode's children.
+ */
 const ifRenderer = (currentNode: VNode, extraContext: string) => {
   let shouldRender = false;
   watchEffect(() => {
@@ -13,6 +25,16 @@ const ifRenderer = (currentNode: VNode, extraContext: string) => {
   return shouldRender;
 };
 
+/**
+ * Render a `<t-elif />` element.
+ * This renderer will only render `currentNode`'s children if its previous element sibling is a `<t-if />` or `<t-elif />`
+ * and its previoud element's condition is a falsy value.
+ * @param currentNode Current node to render.
+ * @param extraContext Some extra variable context to inject.
+ * @param rootVNode The root VNode of `currentNode`.
+ * @param index The position of `currentNode` in `rootVNode.children`.
+ * @returns Whether to continue to render currentNode's children nodes.
+ */
 const elifRenderer = (
   currentNode: VNode,
   extraContext: string,
@@ -20,13 +42,12 @@ const elifRenderer = (
   index: number
 ) => {
   let shouldRender = false;
-  const allowedPreviousElementTags = ["t-if", "t-elif"];
   const previousElement = (rootVNode.children as VNode[])[
     rootVNode.children.length - 1
   ];
   if (
     index - 1 === 0 ||
-    !allowedPreviousElementTags.includes(previousElement.tag) ||
+    !TAGS_WITH_CONDITION.includes(previousElement.tag) ||
     previousElement.props.rendered === "true"
   )
     return false;
@@ -38,6 +59,16 @@ const elifRenderer = (
   return shouldRender;
 };
 
+/**
+ * Render a `<t-else />` element.
+ * This renderer will only render if `currentNode`'s previous element is a valid condition element AND its condition
+ * is a falsy value.
+ * @param currentNode Current node to render.
+ * @param extraContext Some extra context to inject.
+ * @param rootVNode The root VNode of `currentNode`.
+ * @param index The position of `currentNode` in `rootVNode.children`.
+ * @returns Whether to continue to render currentNode's children elements.
+ */
 const elseRenderer = (
   currentNode: VNode,
   extraContext: string,
@@ -45,14 +76,10 @@ const elseRenderer = (
   index: number
 ) => {
   let shouldRender = false;
-  const allowedPreviousElementTags = ["t-if", "t-elif"];
   const previousElement = (rootVNode.children as VNode[])[
     rootVNode.children.length - 1
   ];
-  if (
-    index - 1 === 0 ||
-    !allowedPreviousElementTags.includes(previousElement.tag)
-  )
+  if (index - 1 === 0 || !TAGS_WITH_CONDITION.includes(previousElement.tag))
     return false;
   watchEffect(() => {
     const result = evaluate(previousElement.props.cond, extraContext);
@@ -62,6 +89,17 @@ const elseRenderer = (
   return shouldRender;
 };
 
+/**
+ * Render condition tags.
+ * This renderer will only render if the condition of current element is truthy and its corresponding builtin
+ * conditions met the requirements.
+ * @see {@link ifRenderer}, {@link elifRenderer}, {@link elseRenderer}
+ * @param currentNode Current node to render.
+ * @param extraContext Some extra context to inject.
+ * @param rootVNode The root VNode of `currentNode`.
+ * @param index The position of `currentNode` in `rootVNode.children`.
+ * @returns Whether to continue render currentNode's children elements.
+ */
 const conditionRenderer = (
   currentNode: VNode,
   extraContext: string,
@@ -82,7 +120,7 @@ const conditionRenderer = (
 const renderer: Renderer = {
   renderer: conditionRenderer,
   name: "conditionRenderer",
-  watchTags: ["t-if", "t-elif", "t-else"],
+  watchTags: CONDITION_TAGS,
 };
 
 export default renderer;
