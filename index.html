@@ -12,33 +12,29 @@
       <div>
         <p>Some content top.</p>
         <p>
-          <span>tmp: </span>
-          <v data="tmp.value"></v>
+          <span>Sum: </span>
+          <v data="data.sum.value"></v>
         </p>
-        <button onClick="() => appState.foo.push(1)">Plus 1</button>
-        <button onClick="() => appState.foo.push(2)">Plus 2</button>
-        <t-if cond="tmp.value % 2 === 0">
+        <button onClick="() => data.foo.push(1)">Plus 1</button>
+        <button onClick="() => data.foo.push(-1)">Minus 1</button>
+        <t-if cond="data.sum.value % 2 === 0">
           <span> It's even! </span>
         </t-if>
         <t-else>
           <span> It's odd! </span>
         </t-else>
-        <t-if cond="tmp.value % 10 === 0">
-          <span>Divided by 10! </span>
-        </t-if>
-        <t-if cond="tmp.value % 3 === 0">
-          <span>Divided by Three! </span>
-        </t-if>
         <br />
         <p>
-          <code>appState.foo</code>
+          <code>data.foo</code>
           <span> content:</span>
         </p>
-        <t-for data="i in appState.foo">
+        <span>[</span>
+        <t-for data="i in data.foo">
           <span>
             <v data="`${i} `"></v>
           </span>
         </t-for>
+        <span>]</span>
         <p>Some content bottom.</p>
       </div>
     </div>
@@ -46,17 +42,25 @@
   <script>
     // mount 10000: 200ms / patch 10000: 334ms
     // mount 100000: 1781ms / patch 100000: 3390ms
-    // kinda brute-force :(
-    const appState = TNT.reactive({
-      foo: [],
-    });
-    const tmp = TNT.computed(() => {
-      let sum = 0;
-      appState.foo.forEach((v) => (sum += v));
-      return sum;
-    });
     console.time("mount");
-    const app = new TNT.TNTApp().mount(document.getElementById("root"));
+    const app = new TNT.TNTApp()
+      .useData({
+        foo: [],
+      })
+      .useComputed({
+        sum() {
+          let sum = 0;
+          data.foo.forEach((v) => (sum += v));
+          return sum;
+        },
+      })
+      .useEffect(() => {
+        console.log(`Sum changed: ${data.sum.value}`);
+      })
+      .onMounted(() => {
+        console.log("App mounted!");
+      })
+      .mount(document.getElementById("root"));
     console.timeEnd("mount");
   </script>
 </html>
