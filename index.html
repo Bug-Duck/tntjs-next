@@ -21,7 +21,7 @@
       <div>
         <h1>Counter</h1>
         <p>
-          <span>Sum: </span>
+          Sum:
           <v
             data="data.sum.value"
             :class="(data.sum.value % 2 === 0 ? 'green' : 'red')"
@@ -29,24 +29,30 @@
         </p>
         <button onClick="() => data.foo.push(1)">Plus 1</button>
         <button onClick="() => data.foo.push(-1)">Minus 1</button>
+        <button onClick="() => data.foo.pop()">Pop top</button>
         <t-if cond="data.sum.value % 2 === 0">
-          <span> It's even! </span>
+          It's even!
         </t-if>
         <t-else>
-          <span> It's odd! </span>
+          It's odd!
         </t-else>
         <br />
         <p>
           <code>data.foo</code>
-          <span> content:</span>
+          content:
         </p>
-        <span>[</span>
-        <t-for data="i in data.foo">
+        [
+        <t-for data="i in data.foo.slice(0, -1)">
           <span>
-            <v data="`${i} `"></v>
+            <v data="`${i}`"></v>,
           </span>
         </t-for>
-        <span>]</span>
+        <t-if cond="data.foo.length">
+          <span>
+            <v data="`${data.foo[data.foo.length - 1]}`"></v>
+          </span>
+        </t-if>
+        ]
       </div>
     </div>
   </body>

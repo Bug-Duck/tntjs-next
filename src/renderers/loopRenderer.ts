@@ -1,8 +1,8 @@
 import { deepClone, evaluate } from "../lib/common";
 import {
-  VNode,
   createVdomFromExistingElement,
   createVNodeFromElement,
+  VNode,
 } from "../vdom";
 import { Renderer } from "./index";
 

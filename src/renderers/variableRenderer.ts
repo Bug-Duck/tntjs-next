@@ -11,10 +11,9 @@ import { Renderer } from "./index";
  */
 const variableRenderer = (currentNode: VNode, extraContext: string) => {
   watchEffect(() => {
-    currentNode.children = evaluate(
-      currentNode.props.data,
-      extraContext
-    ).toString();
+    currentNode.children = [
+      evaluate(currentNode.props.data, extraContext).toString(),
+    ];
   });
   return true;
 };

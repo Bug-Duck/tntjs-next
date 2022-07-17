@@ -2,6 +2,8 @@ import { evaluate } from "./lib/common";
 import { watchEffect } from "./reactivity";
 import renderers from "./renderers/index";
 
+export type VNodeChild = VNode | string;
+
 /** A Virtual Node representation. */
 export interface VNode {
   /** Node tag name. */
@@ -9,7 +11,7 @@ export interface VNode {
   /** Node properties */
   props: Record<string, string>;
   /** Node children */
-  children: VNode[] | string;
+  children: VNodeChild[];
   /** Actual element in DOM for the current VNode. */
   el: Element;
 }
@@ -25,7 +27,7 @@ export interface VNode {
 export const h = (
   tag: string,
   props: Record<string, string> = {},
-  children: VNode[] | string = [],
+  children: VNodeChild[],
   el?: Element
 ): VNode => {
   return { tag, props, children, el };
@@ -68,7 +70,11 @@ export const mount = (vnode: VNode, container: Element) => {
     container.appendChild(el);
     return;
   }
-  vnode.children.forEach((child) => {
+  vnode.children.forEach((child, index) => {
+    if (typeof child === "string") {
+      el.appendChild(document.createTextNode(child));
+      return;
+    }
     mount(child, el);
   });
   container.appendChild(el);
@@ -102,35 +108,43 @@ export const patch = (n1: VNode, n2: VNode) => {
     // children
     const oldChildren = n1.children;
     const newChildren = n2.children;
-    if (typeof newChildren === "string") {
-      if (typeof oldChildren === "string" && newChildren !== oldChildren) {
-        el.textContent = newChildren;
-        return;
-      }
-      el.textContent = newChildren;
-      return;
-    }
-    if (typeof oldChildren === "string") {
-      el.innerHTML = "";
-      newChildren.forEach((child) => {
-        mount(child, el);
-      });
-      return;
-    }
     const commonLength = Math.min(oldChildren.length, newChildren.length);
     for (let i = 0; i < commonLength; i++) {
-      patch(oldChildren[i], newChildren[i]);
+      const oldChild = oldChildren[i];
+      const newChild = newChildren[i];
+      if (typeof oldChild === "string") {
+        if (typeof newChild === "string") {
+          if (oldChild !== newChild) {
+            el.replaceChild(
+              document.createTextNode(newChild),
+              el.childNodes[i]
+            );
+          }
+          continue;
+        }
+      }
+      patch(oldChild as VNode, newChild as VNode);
     }
     if (newChildren.length > oldChildren.length) {
-      newChildren.slice(oldChildren.length).forEach((child) => {
+      newChildren.slice(oldChildren.length).forEach((child: VNode) => {
+        if (typeof child === "string") {
+          el.appendChild(document.createTextNode(child));
+          return;
+        }
         mount(child, el);
       });
       return;
     }
     if (newChildren.length < oldChildren.length) {
-      oldChildren.slice(newChildren.length).forEach((child) => {
-        el.removeChild(child.el);
-      });
+      oldChildren
+        .slice(newChildren.length)
+        .forEach((child: VNodeChild, index) => {
+          if (typeof child === "string") {
+            el.removeChild(el.childNodes[index]);
+            return;
+          }
+          el.removeChild(child.el);
+        });
       return;
     }
     return;
@@ -163,8 +177,12 @@ export const createVdomFromExistingElement = (
   container: Element,
   extraContext = ""
 ) => {
-  let isTextCreated = false;
-  [...container.children].forEach((child, index) => {
+  [...container.childNodes].forEach((child: Element, index) => {
+    if (child.nodeType === Node.TEXT_NODE) {
+      if (!child.textContent.trim()) return;
+      rootVNode.children.push(child.textContent);
+      return;
+    }
     let shouldRender = true;
     let injectContext = extraContext;
     const currentNode = h(
@@ -197,44 +215,15 @@ export const createVdomFromExistingElement = (
     }
     (rootVNode.children as VNode[]).push(currentNode);
   });
-  if (rootVNode.children.length) {
-    return;
-  }
-  container.childNodes.forEach((child) => {
-    if (isTextCreated) return;
-    if (!child.TEXT_NODE) return;
-    if (!child.textContent.trim()) return;
-    rootVNode.children = child.textContent;
-    isTextCreated = true;
-  });
 };
 
 /**
  * Create a new VNode from the given element.
+ * Note: this function will not generate children nodes. To include children generation,
+ * please use {@link createVdomFromExistingElement}.
  * @param node Element to create VNode from.
  * @returns The generated VNode object.
  */
 export const createVNodeFromElement = (node: Element): VNode => {
-  let children: VNode[] | string = "";
-  // children edge cases handling
-  if (!node.children.length) {
-    children = [];
-  } else if (
-    node.children[0].nodeType === Node.TEXT_NODE &&
-    node.children[0].textContent.trim()
-  ) {
-    children = node.children[0].textContent;
-  } else {
-    children = [...node.children]
-      .filter(
-        (child) => child.children.length && child.children[0].textContent.trim()
-      )
-      .map((child) => createVNodeFromElement(child));
-  }
-  return h(
-    node.tagName.toLowerCase(),
-    getAttributesOfElement(node),
-    children,
-    node
-  );
+  return h(node.tagName.toLowerCase(), getAttributesOfElement(node), [], node);
 };
