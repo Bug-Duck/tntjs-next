@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>TNTjs Demo</title>
     <script src="./dist/tnt.min.js"></script>
     <style>
       .green {
@@ -20,17 +20,19 @@
     <div id="root">
       <div>
         <h1>Counter</h1>
-        <p>
+        Bar: <v data="bar.value"></v>
+        <p
+          :class="(sum.value % 2 === 0 ? 'green' : 'red')">
           Sum:
           <v
-            data="data.sum.value"
-            :class="(data.sum.value % 2 === 0 ? 'green' : 'red')"
+            data="sum.value"
           ></v>
         </p>
         <button onClick="() => data.foo.push(1)">Plus 1</button>
-        <button onClick="() => data.foo.push(-1)">Minus 1</button>
-        <button onClick="() => data.foo.pop()">Pop top</button>
-        <t-if cond="data.sum.value % 2 === 0">
+        <button onClick="() => foo.push(-1)">Minus 1</button>
+        <button onClick="() => foo.pop()">Pop top</button>
+        <button onClick="() => data.bar++">Plus bar</button>
+        <t-if cond="sum.value % 2 === 0">
           It's even!
         </t-if>
         <t-else>
@@ -42,12 +44,12 @@
           content:
         </p>
         [
-        <t-for data="i in data.foo.slice(0, -1)">
+        <t-for data="i in foo.slice(0, -1)">
           <span>
             <v data="`${i}`"></v>,
           </span>
         </t-for>
-        <t-if cond="data.foo.length">
+        <t-if cond="foo.length">
           <span>
             <v data="`${data.foo[data.foo.length - 1]}`"></v>
           </span>
@@ -58,11 +60,12 @@
   </body>
   <script>
     // mount 10000: 200ms / patch 10000: 334ms
-    // mount 100000: 1781ms / patch 100000: 3390ms
+    // mount 100000: 2129ms / patch 100000: 3390ms
     console.time("mount");
     const app = new TNT.TNTApp()
       .useData({
         foo: [],
+        bar: 0,
       })
       .useComputed({
         sum() {
@@ -72,12 +75,13 @@
         },
       })
       .useEffect(() => {
-        console.log(`Sum changed: ${data.sum.value}`);
+        console.log(`Sum changed: ${data.sum}`);
       })
-      .onMounted(() => {
+      .onMounted((app) => {
+        console.timeEnd("mount");
         console.log("App mounted!");
       })
       .mount(document.getElementById("root"));
-    console.timeEnd("mount");
+    data.foo = [233]
   </script>
 </html>

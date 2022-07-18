@@ -9,7 +9,7 @@ import { Renderer } from "./index";
  * @param extraContext Some extra context to inject.
  * @returns Whether to continue render `currentNode`'s children elements.
  */
-const variableRenderer = (currentNode: VNode, extraContext: string) => {
+const variableRenderer = (currentNode: VNode, extraContext: object) => {
   watchEffect(() => {
     currentNode.children = [
       evaluate(currentNode.props.data, extraContext).toString(),
@@ -21,7 +21,9 @@ const variableRenderer = (currentNode: VNode, extraContext: string) => {
 const renderer: Renderer = {
   renderer: variableRenderer,
   name: "variableRenderer",
-  watchTags: ["v"],
+  shouldFire(node) {
+    return node.tag === "v";
+  },
 };
 
 export default renderer;

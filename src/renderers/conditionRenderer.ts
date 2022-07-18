@@ -15,7 +15,7 @@ export const CONDITION_TAGS = ["t-if", "t-elif", "t-else"];
  * @param extraContext Some extra variable context to inject.
  * @returns Whether should continue to render currentNode's children.
  */
-const ifRenderer = (currentNode: VNode, extraContext: string) => {
+const ifRenderer = (currentNode: VNode, extraContext: object) => {
   let shouldRender = false;
   watchEffect(() => {
     const result = evaluate(currentNode.props.cond, extraContext);
@@ -37,7 +37,7 @@ const ifRenderer = (currentNode: VNode, extraContext: string) => {
  */
 const elifRenderer = (
   currentNode: VNode,
-  extraContext: string,
+  extraContext: object,
   rootVNode: VNode,
   index: number
 ) => {
@@ -71,7 +71,7 @@ const elifRenderer = (
  */
 const elseRenderer = (
   currentNode: VNode,
-  extraContext: string,
+  extraContext: object,
   rootVNode: VNode,
   index: number
 ) => {
@@ -102,7 +102,7 @@ const elseRenderer = (
  */
 const conditionRenderer = (
   currentNode: VNode,
-  extraContext: string,
+  extraContext: object,
   rootVNode: VNode,
   index: number
 ) => {
@@ -120,7 +120,9 @@ const conditionRenderer = (
 const renderer: Renderer = {
   renderer: conditionRenderer,
   name: "conditionRenderer",
-  watchTags: CONDITION_TAGS,
+  shouldFire(node) {
+    return CONDITION_TAGS.includes(node.tag);
+  },
 };
 
 export default renderer;

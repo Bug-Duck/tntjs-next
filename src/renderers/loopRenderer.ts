@@ -12,7 +12,7 @@ import { Renderer } from "./index";
  * @param extraContext Some extra context to fill in to the evaluation process.
  * @returns Whether to continue rendering its children or not.
  */
-const loopRenderer = (currentNode: VNode, extraContext: string) => {
+const loopRenderer = (currentNode: VNode, extraContext: object) => {
   const expr = currentNode.props.data.split(" in ");
   const localName = expr[0].trim();
   const loopingValue = evaluate(expr[1].trim(), extraContext);
@@ -20,11 +20,10 @@ const loopRenderer = (currentNode: VNode, extraContext: string) => {
   for (const currentData of loopingValue) {
     const currentChild = createVNodeFromElement(originalChild);
     // custom rendering logic
-    createVdomFromExistingElement(
-      currentChild,
-      currentChild.el,
-      `const ${localName} = ${JSON.stringify(currentData)}; ${extraContext};`
-    );
+    createVdomFromExistingElement(currentChild, currentChild.el, {
+      ...extraContext,
+      [localName]: currentData,
+    });
     (currentNode.children as VNode[]).push(currentChild);
   }
   // do not render its children since they're already rendered
@@ -34,7 +33,9 @@ const loopRenderer = (currentNode: VNode, extraContext: string) => {
 const renderer: Renderer = {
   renderer: loopRenderer,
   name: "loopRenderer",
-  watchTags: ["t-for"],
+  shouldFire(node) {
+    return node.tag === "t-for";
+  },
 };
 
 export default renderer;

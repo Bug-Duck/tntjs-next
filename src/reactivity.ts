@@ -149,6 +149,7 @@ export const ref = (raw: ReactiveType) => {
 
 /**
  * Create a reactive computed value.
+ * @note `computed` is built on top of {@link ref} API. Any updates must be using `.value` accessor.
  * @param getter Function to calculate the computed value.
  * @returns A reference object to the computed value.
  */

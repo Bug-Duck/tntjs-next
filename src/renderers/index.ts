@@ -2,6 +2,7 @@ import { VNode } from "../vdom";
 import variableRenderer from "./variableRenderer";
 import conditionRenderer from "./conditionRenderer";
 import loopRenderer from "./loopRenderer";
+import attributeRenderer from "./attributeRenderer";
 
 /** Return values for rendered contents. */
 export interface RenderedContent {
@@ -23,23 +24,25 @@ export interface Renderer {
    */
   renderer: (
     currentNode: VNode,
-    extraContext: string,
-    rootVNode: VNode,
-    index: number
+    extraContext: object,
+    rootVNode?: VNode,
+    index?: number
   ) => boolean | RenderedContent;
   /** Name of current renderer, only for debugging purposes. */
   name: string;
   /**
-   * Tags to watch.
-   * When any of these tags updates, TNT will fire the current renderer function automaticly.
+   * Function to check whether current node should be called with current renderer.
+   * @param node Current VNode to check.
+   * @returns Whether to call current render function or not.
    */
-  watchTags: string[];
+  shouldFire: (node: VNode) => boolean;
 }
 
 const renderers: Renderer[] = [
   variableRenderer,
   conditionRenderer,
   loopRenderer,
+  attributeRenderer,
 ];
 
 export default {

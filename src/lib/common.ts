@@ -24,12 +24,12 @@ export const deepClone = (obj: any) => {
  */
 export const evaluate = (
   expression: string,
-  extraContext = "",
+  extraContext = {},
   shouldExecuate = true
 ) => {
   try {
-    const func = Function(`${extraContext}; return ${expression};`);
-    return shouldExecuate ? func() : func;
+    const func = Function("ctx", `with(ctx) {return ${expression};}`);
+    return shouldExecuate ? func(extraContext) : func;
   } catch (e) {
     return e.toString();
   }

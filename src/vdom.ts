@@ -1,5 +1,5 @@
 import { evaluate } from "./lib/common";
-import { watchEffect } from "./reactivity";
+import attributeRenderer from "./renderers/attributeRenderer";
 import renderers from "./renderers/index";
 
 export type VNodeChild = VNode | string;
@@ -39,43 +39,41 @@ export const h = (
  * @param container The container DOM element to contain all generated nodes.
  * @returns The container element with generated nodes appended.
  */
-export const mount = (vnode: VNode, container: Element) => {
+export const mount = (
+  vnode: VNode,
+  container: Element,
+  extraContext: object = {}
+) => {
   const el = (vnode.el = document.createElement(vnode.tag));
   // processing props
   for (const key in vnode.props) {
     const value = vnode.props[key];
-    if (key.startsWith(":")) {
-      if (key.startsWith(":on")) {
-        console.warn(
-          "[TNT warn] Using reactive binding and event listeners at the same time will cause the program to run not as expected.",
-          "Please extract logic or remove one of the effect bindings."
-        );
-      }
-      watchEffect(() => {
-        vnode.el.setAttribute(key.slice(1), evaluate(value));
-      });
-      vnode.el.removeAttribute(key);
-      continue;
-    }
     if (key.startsWith("on")) {
-      el.addEventListener(key.slice(2).toLowerCase(), evaluate(value));
+      el.addEventListener(
+        key.slice(2).toLowerCase(),
+        evaluate(value, extraContext)
+      );
       vnode.el.removeAttribute(key);
       continue;
     }
     el.setAttribute(key, value);
   }
+  // TODO: refactor renderer fire logic for mounting
+  if (attributeRenderer.shouldFire(vnode))
+    attributeRenderer.renderer(vnode, extraContext);
+
   // processing children
   if (typeof vnode.children === "string") {
     el.textContent = vnode.children;
     container.appendChild(el);
     return;
   }
-  vnode.children.forEach((child, index) => {
+  vnode.children.forEach((child) => {
     if (typeof child === "string") {
       el.appendChild(document.createTextNode(child));
       return;
     }
-    mount(child, el);
+    mount(child, el, extraContext);
   });
   container.appendChild(el);
   return container;
@@ -87,7 +85,7 @@ export const mount = (vnode: VNode, container: Element) => {
  * @param n1 The old VNode to be replaced.
  * @param n2 The newer VNode to update the current DOM to.
  */
-export const patch = (n1: VNode, n2: VNode) => {
+export const patch = (n1: VNode, n2: VNode, extraContext: object = {}) => {
   if (n1.tag === n2.tag) {
     const el = (n2.el = n1.el);
     // props
@@ -131,7 +129,7 @@ export const patch = (n1: VNode, n2: VNode) => {
           el.appendChild(document.createTextNode(child));
           return;
         }
-        mount(child, el);
+        mount(child, el, extraContext);
       });
       return;
     }
@@ -175,12 +173,16 @@ export const getAttributesOfElement = (
 export const createVdomFromExistingElement = (
   rootVNode: VNode,
   container: Element,
-  extraContext = ""
+  extraContext: object = {}
 ) => {
   [...container.childNodes].forEach((child: Element, index) => {
     if (child.nodeType === Node.TEXT_NODE) {
       if (!child.textContent.trim()) return;
       rootVNode.children.push(child.textContent);
+      return;
+    }
+    // only generate text node and element node
+    if (child.nodeType !== Node.ELEMENT_NODE) {
       return;
     }
     let shouldRender = true;
@@ -191,8 +193,9 @@ export const createVdomFromExistingElement = (
       []
     );
     currentNode.el = child;
+    // fire renderers
     renderers.renderers.forEach((renderer) => {
-      if (!renderer.watchTags.includes(currentNode.tag)) return;
+      if (!renderer.shouldFire(currentNode)) return;
       const renderResult = renderer.renderer(
         currentNode,
         injectContext,
@@ -204,11 +207,7 @@ export const createVdomFromExistingElement = (
         return;
       }
       shouldRender = renderResult.shouldRender || shouldRender;
-      for (const variableName in renderResult.injectVariables) {
-        injectContext += `const ${variableName} = ${JSON.stringify(
-          renderResult.injectVariables[variableName]
-        )};`;
-      }
+      injectContext = { ...injectContext, ...renderResult.injectVariables };
     });
     if (shouldRender) {
       createVdomFromExistingElement(currentNode, child, injectContext);
