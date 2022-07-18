@@ -27,8 +27,19 @@ export const evaluate = (
   extraContext = {},
   shouldExecuate = true
 ) => {
+  let extraContextEval = "";
+  for (const key in extraContext) {
+    extraContextEval += `const ${key} = ${
+      typeof extraContext[key] === "string"
+        ? '"' + extraContext[key] + '"'
+        : extraContext[key]
+    }; `;
+  }
   try {
-    const func = Function("ctx", `with(ctx) {return ${expression};}`);
+    const func = Function(
+      "ctx",
+      `with(window.data) {${extraContextEval}; return ${expression};}`
+    );
     return shouldExecuate ? func(extraContext) : func;
   } catch (e) {
     return e.toString();

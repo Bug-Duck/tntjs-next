@@ -36,6 +36,8 @@ export interface Renderer {
    * @returns Whether to call current render function or not.
    */
   shouldFire: (node: VNode) => boolean;
+  /** Whether current renderer should be fired on mount stage */
+  fireOnMounted?: boolean;
 }
 
 const renderers: Renderer[] = [

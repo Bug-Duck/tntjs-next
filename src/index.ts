@@ -71,23 +71,8 @@ export class TNTApp {
         getAttributesOfElement(currentContainer),
         []
       );
-      const extraContext = {
-        ...this.#reactiveData,
-      };
-      // normalization for ref-based data
-      for (const key in this.#computedData) {
-        // commented code will not update when running attribute renderer
-        // FIXME: fix inconsistent reaction of updating ref-based data
-        // extraContext[key] = this.#computedData[key].value;
-        extraContext[key] = this.#computedData[key];
-      }
-      for (const key in this.#refData) {
-        // FIXME: fix inconsistent reaction of updating ref-based data
-        // extraContext[key] = this.#refData[key].value;
-        extraContext[key] = this.#refData[key];
-      }
       vnode.el = currentContainer;
-      createVdomFromExistingElement(vnode, currentContainer, extraContext);
+      createVdomFromExistingElement(vnode, currentContainer, {});
       currentNode = h(
         container.tagName,
         getAttributesOfElement(currentContainer),
@@ -96,14 +81,14 @@ export class TNTApp {
       );
       if (!isMounted) {
         prevVdom = deepClone(currentNode);
-        mount(prevVdom, container, extraContext);
+        mount(prevVdom, container, {});
         isMounted = true;
         this.#removeUpdatedElements(container, currentContainer);
         this.#onMounted(this);
         return;
       }
       const newVdom: VNode = deepClone(currentNode);
-      patch(prevVdom, newVdom, extraContext);
+      patch(prevVdom, newVdom, {});
       prevVdom = deepClone(newVdom);
       this.#removeUpdatedElements(container, currentContainer);
     });
@@ -138,7 +123,9 @@ export class TNTApp {
     };
 
     const handlers = {
-      get(target: MixedTarget, prop: string) {
+      get(target: MixedTarget, prop: string | symbol) {
+        if (typeof prop === "symbol") return undefined;
+        prop = prop.toString();
         if (prop in target.reactive) {
           return target.reactive[prop];
         }
@@ -167,6 +154,15 @@ export class TNTApp {
         );
         return false;
       },
+      has(target: MixedTarget, key: string | symbol) {
+        if (typeof key === "symbol") {
+          key = key.toString();
+        }
+        if (key in globalThis) return false;
+        return (
+          key in target.ref || key in target.reactive || key in target.computed
+        );
+      },
     };
 
     return new Proxy(
@@ -194,9 +190,6 @@ export class TNTApp {
         this.#reactiveData[key] = reactive(data[key]);
         continue;
       }
-      // currently the only way to re-assign ref-based objects is by using `data.prop = xxx`
-      // directly using `prop = xxx` will not work
-      // TODO: remove limatations on reference objects
       this.#refData[key] = ref(data[key]);
     }
     this.#dataProxy = this.#getDataProxy();

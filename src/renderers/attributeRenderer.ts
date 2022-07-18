@@ -39,6 +39,7 @@ const renderer: Renderer = {
     }
     return false;
   },
+  fireOnMounted: true,
 };
 
 export default renderer;

@@ -20,19 +20,19 @@
     <div id="root">
       <div>
         <h1>Counter</h1>
-        Bar: <v data="bar.value"></v>
+        Bar: <v data="bar"></v>
         <p
-          :class="(sum.value % 2 === 0 ? 'green' : 'red')">
+          :class="(sum % 2 === 0 ? 'green' : 'red')">
           Sum:
           <v
-            data="sum.value"
+            data="sum"
           ></v>
         </p>
-        <button onClick="() => data.foo.push(1)">Plus 1</button>
+        <button onClick="() => foo.push(1)">Plus 1</button>
         <button onClick="() => foo.push(-1)">Minus 1</button>
         <button onClick="() => foo.pop()">Pop top</button>
-        <button onClick="() => data.bar++">Plus bar</button>
-        <t-if cond="sum.value % 2 === 0">
+        <button onClick="() => bar++">Plus bar</button>
+        <t-if cond="sum % 2 === 0">
           It's even!
         </t-if>
         <t-else>
@@ -51,7 +51,7 @@
         </t-for>
         <t-if cond="foo.length">
           <span>
-            <v data="`${data.foo[data.foo.length - 1]}`"></v>
+            <v data="`${foo[foo.length - 1]}`"></v>
           </span>
         </t-if>
         ]

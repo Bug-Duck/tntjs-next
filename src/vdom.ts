@@ -1,5 +1,4 @@
 import { evaluate } from "./lib/common";
-import attributeRenderer from "./renderers/attributeRenderer";
 import renderers from "./renderers/index";
 
 export type VNodeChild = VNode | string;
@@ -58,9 +57,10 @@ export const mount = (
     }
     el.setAttribute(key, value);
   }
-  // TODO: refactor renderer fire logic for mounting
-  if (attributeRenderer.shouldFire(vnode))
-    attributeRenderer.renderer(vnode, extraContext);
+  renderers.renderers.forEach((renderer) => {
+    if (!renderer.fireOnMounted || !renderer.shouldFire(vnode)) return;
+    renderer.renderer(vnode, extraContext);
+  });
 
   // processing children
   if (typeof vnode.children === "string") {
