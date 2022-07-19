@@ -10,8 +10,34 @@ import { Renderer } from "./index";
  * @returns Whether to continue rendering `currentNode`'s children or not.
  */
 const attributeRenderer = (currentNode: VNode, extraContext: object) => {
+  const TNT_RENDERED = "/* TNT_RENDERED */";
+  const TNT_PRESERVED_PREFIX = "__tnt_";
+  const specialListeners: Record<string, any> = {};
+
   for (const key in currentNode.props) {
-    if (!key.startsWith(":")) continue;
+    let realKey = key;
+    if (realKey.startsWith(TNT_PRESERVED_PREFIX))
+      realKey = realKey.slice(TNT_PRESERVED_PREFIX.length);
+    if (!realKey.startsWith(":") && !realKey.startsWith("on")) continue;
+
+    if (realKey.startsWith("on")) {
+      if (currentNode.props[key].startsWith(TNT_RENDERED)) continue;
+      const originalKey = TNT_PRESERVED_PREFIX + realKey;
+      let injectContext = "";
+      for (const ctx in extraContext)
+        injectContext += `const ${ctx} = ${JSON.stringify(
+          extraContext[ctx]
+        )}; `;
+
+      const script = `${TNT_RENDERED} with (window.data) {${injectContext}${currentNode.props[
+        originalKey in currentNode.props ? originalKey : realKey
+      ].toString()}}`;
+      specialListeners[originalKey] = currentNode.props[key];
+      currentNode.el.setAttribute(realKey, script);
+      currentNode.props[realKey] = script;
+      continue;
+    }
+
     if (key.startsWith(":on")) {
       console.warn(
         "[TNT warn] Using reactive binding and event listeners at the same time will cause the program to run not as expected.",
@@ -27,6 +53,10 @@ const attributeRenderer = (currentNode: VNode, extraContext: object) => {
       );
     });
   }
+  for (const key in specialListeners) {
+    currentNode.el.setAttribute(key, specialListeners[key]);
+    currentNode.props[key] = specialListeners[key];
+  }
   return true;
 };
 
@@ -35,11 +65,10 @@ const renderer: Renderer = {
   name: "attributeRenderer",
   shouldFire(node) {
     for (const key in node.props) {
-      if (key.startsWith(":")) return true;
+      if (key.startsWith(":") || key.startsWith("on")) return true;
     }
     return false;
   },
-  fireOnMounted: true,
 };
 
 export default renderer;

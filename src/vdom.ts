@@ -1,4 +1,3 @@
-import { evaluate } from "./lib/common";
 import renderers from "./renderers/index";
 
 export type VNodeChild = VNode | string;
@@ -47,14 +46,6 @@ export const mount = (
   // processing props
   for (const key in vnode.props) {
     const value = vnode.props[key];
-    if (key.startsWith("on")) {
-      el.addEventListener(
-        key.slice(2).toLowerCase(),
-        evaluate(value, extraContext)
-      );
-      vnode.el.removeAttribute(key);
-      continue;
-    }
     el.setAttribute(key, value);
   }
   renderers.renderers.forEach((renderer) => {
@@ -121,7 +112,7 @@ export const patch = (n1: VNode, n2: VNode, extraContext: object = {}) => {
           continue;
         }
       }
-      patch(oldChild as VNode, newChild as VNode);
+      patch(oldChild as VNode, newChild as VNode, extraContext);
     }
     if (newChildren.length > oldChildren.length) {
       newChildren.slice(oldChildren.length).forEach((child: VNode) => {
@@ -159,8 +150,11 @@ export const getAttributesOfElement = (
   element: Element
 ): Record<string, string> => {
   const attributes = {};
-  for (let i = 0; i < element.attributes.length; i++)
-    attributes[element.attributes[i].name] = element.attributes[i].value;
+  for (let i = 0; i < element.attributes.length; i++) {
+    const value = element.attributes[i].value;
+    const name = element.attributes[i].name;
+    attributes[name] = value;
+  }
   return attributes;
 };
 
@@ -185,6 +179,7 @@ export const createVdomFromExistingElement = (
     if (child.nodeType !== Node.ELEMENT_NODE) {
       return;
     }
+    // if (child.closest("t-for")) return;
     let shouldRender = true;
     let injectContext = extraContext;
     const currentNode = h(

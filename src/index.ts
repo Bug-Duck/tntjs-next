@@ -1,5 +1,12 @@
 import { deepClone } from "./lib/common";
-import { computed, reactive, ref, trigger, watchEffect } from "./reactivity";
+import {
+  computed,
+  reactive,
+  ref,
+  track,
+  trigger,
+  watchEffect,
+} from "./reactivity";
 import {
   createVdomFromExistingElement,
   getAttributesOfElement,
@@ -65,7 +72,8 @@ export class TNTApp {
 
     // app lifecycle loop
     watchEffect(() => {
-      const currentContainer = currentNode?.el ?? container.children[0];
+      const currentContainer: Element =
+        currentNode?.el ?? container.children[0];
       const vnode = h(
         currentContainer.tagName,
         getAttributesOfElement(currentContainer),
@@ -119,7 +127,7 @@ export class TNTApp {
         target.reactive[prop].push(...value);
       }
       // manually trigger an update
-      trigger(this.#originalData, prop);
+      trigger(this.#originalData[prop], prop);
     };
 
     const handlers = {
@@ -133,6 +141,7 @@ export class TNTApp {
           return target.computed[prop].value;
         }
         if (prop in target.ref) {
+          track(target.ref[prop], "value");
           return target.ref[prop].value;
         }
         console.warn(
@@ -147,6 +156,7 @@ export class TNTApp {
         }
         if (prop in target.ref) {
           target.ref[prop].value = value;
+          trigger(target.ref[prop], "value");
           return true;
         }
         console.warn(
@@ -257,5 +267,7 @@ export {
   ref,
   targetMap,
   watchEffect,
+  trigger,
+  track,
 } from "./reactivity";
 export { h, mount, patch } from "./vdom";

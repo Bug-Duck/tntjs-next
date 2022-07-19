@@ -20,36 +20,38 @@
     <div id="root">
       <div>
         <h1>Counter</h1>
+        <g key="cur" value="{ val: 2333399933 }">
+          <v data="cur.val"></v>
+        </g>
         Bar: <v data="bar"></v>
-        <p
-          :class="(sum % 2 === 0 ? 'green' : 'red')">
+        <p :class="(sum % 2 === 0 ? 'green' : 'red')">
           Sum:
-          <v
-            data="sum"
-          ></v>
+          <v data="sum"></v>
         </p>
-        <button onClick="() => foo.push(1)">Plus 1</button>
-        <button onClick="() => foo.push(-1)">Minus 1</button>
-        <button onClick="() => foo.pop()">Pop top</button>
-        <button onClick="() => bar++">Plus bar</button>
-        <t-if cond="sum % 2 === 0">
-          It's even!
-        </t-if>
-        <t-else>
-          It's odd!
-        </t-else>
+        <button onClick="data.foo.push(1)">Plus 1</button>
+        <button onClick="foo.push(-1)">Minus 1</button>
+        <button onClick="foo.pop()">Pop top</button>
+        <button onClick="bar++">Plus bar</button>
+        <button onClick="foo[foo.length - 2] += 2">Plus 2</button>
+        <t-if cond="sum % 2 === 0"> It's even! </t-if>
+        <t-else> It's odd! </t-else>
         <br />
         <p>
           <code>data.foo</code>
           content:
         </p>
         [
-        <t-for data="i in foo.slice(0, -1)">
-          <span>
-            <v data="`${i}`"></v>,
+        <t-for data="currentNumber in foo">
+          <span onclick="alert(`You clicked: ${currentNumber}`)">
+            <t-if cond="currentNumber > 0">
+              <v data="`${currentNumber}`"></v>,
+            </t-if>
+            <t-else>
+              &larr; 0
+            </t-else>
           </span>
         </t-for>
-        <t-if cond="foo.length">
+        <t-if cond="foo.length && foo[foo.length - 1] > 0">
           <span>
             <v data="`${foo[foo.length - 1]}`"></v>
           </span>
@@ -82,6 +84,6 @@
         console.log("App mounted!");
       })
       .mount(document.getElementById("root"));
-    data.foo = [233]
+    data.foo = [233];
   </script>
 </html>

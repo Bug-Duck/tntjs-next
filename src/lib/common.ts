@@ -6,7 +6,16 @@
 export const deepClone = (obj: any) => {
   const newObj: any = {};
   for (const key in obj) {
-    if (typeof key === "object") {
+    if (Array.isArray(obj[key])) {
+      const newArr = [];
+      obj[key].forEach((val) => {
+        if (typeof val === "object") newArr.push(deepClone(val));
+        else newArr.push(val);
+      });
+      newObj[key] = newArr;
+      continue;
+    }
+    if (typeof obj[key] === "object" && !obj[key].tagName) {
       newObj[key] = deepClone(obj[key]);
       continue;
     }
@@ -32,7 +41,7 @@ export const evaluate = (
     extraContextEval += `const ${key} = ${
       typeof extraContext[key] === "string"
         ? '"' + extraContext[key] + '"'
-        : extraContext[key]
+        : JSON.stringify(extraContext[key])
     }; `;
   }
   try {

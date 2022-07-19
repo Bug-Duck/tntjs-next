@@ -3,6 +3,7 @@ import variableRenderer from "./variableRenderer";
 import conditionRenderer from "./conditionRenderer";
 import loopRenderer from "./loopRenderer";
 import attributeRenderer from "./attributeRenderer";
+import getRenderer from "./getRenderer";
 
 /** Return values for rendered contents. */
 export interface RenderedContent {
@@ -45,6 +46,7 @@ const renderers: Renderer[] = [
   conditionRenderer,
   loopRenderer,
   attributeRenderer,
+  getRenderer,
 ];
 
 export default {
