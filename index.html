@@ -22,7 +22,7 @@
   <div id="root">
     <div>
       <h1>Counter</h1>
-      <v data="nae"></v>
+      <v data="n"></v>
       Bar: <v data="bar"></v>
       <p :class="(sum % 2 === 0 ? 'green' : 'red')">
         Sum:
@@ -56,9 +56,13 @@
           <v data="`${foo[foo.length - 1]}`"></v>
         </span>
       </t-if>
-      ]
-      <t-get src="./test.json" type="json">
-        <v data="name"></v>
+      ]<br/><br/><br/>
+      <t-get src="https://acbox.rth.app/public/data.json" type="json" data="data=233333">
+        姓名 <v data="name"></v><br/>
+        年龄 <v data="age"></v><br/>
+        语言 <v data="language"></v><br/>
+        请求状态码 <v data="requestData.code"></v><br/>
+        请求文字 <v data="requestData.text"></v>
       </t-get>
     </div>
   </div>
@@ -81,7 +85,7 @@
       },
     })
     .useEffect(() => {
-      console.log(`Sum changed: ${data.sum}`);
+      console.log(`Sum changed: ${data.sum}`)
     })
     .onMounted((app) => {
       console.timeEnd("mount");
