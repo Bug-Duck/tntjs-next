@@ -1,90 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TNTjs Demo</title>
-    <script src="./dist/tnt.min.js"></script>
-    <style>
-      .green {
-        color: green;
-      }
 
-      .red {
-        color: red;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="root">
-      <div>
-        <h1>Counter</h1>
-        <g key="cur" value="{ val: 2333399933 }">
-          <v data="cur.val"></v>
-        </g>
-        Bar: <v data="bar"></v>
-        <p :class="(sum % 2 === 0 ? 'green' : 'red')">
-          Sum:
-          <v data="sum"></v>
-        </p>
-        <button onClick="data.foo.push(1)">Plus 1</button>
-        <button onClick="foo.push(-1)">Minus 1</button>
-        <button onClick="foo.pop()">Pop top</button>
-        <button onClick="bar++">Plus bar</button>
-        <button onClick="foo[foo.length - 2] += 2">Plus 2</button>
-        <t-if cond="sum % 2 === 0"> It's even! </t-if>
-        <t-else> It's odd! </t-else>
-        <br />
-        <p>
-          <code>data.foo</code>
-          content:
-        </p>
-        [
-        <t-for data="currentNumber in foo">
-          <span onclick="alert(`You clicked: ${currentNumber}`)">
-            <t-if cond="currentNumber > 0">
-              <v data="`${currentNumber}`"></v>,
-            </t-if>
-            <t-else>
-              &larr; 0
-            </t-else>
-          </span>
-        </t-for>
-        <t-if cond="foo.length && foo[foo.length - 1] > 0">
-          <span>
-            <v data="`${foo[foo.length - 1]}`"></v>
-          </span>
-        </t-if>
-        ]
-      </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TNTjs Demo</title>
+  <script src="./dist/tnt.min.js"></script>
+  <style>
+    .green {
+      color: green;
+    }
+
+    .red {
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root">
+    <div>
+      <h1>Counter</h1>
+      <v data="nae"></v>
+      Bar: <v data="bar"></v>
+      <p :class="(sum % 2 === 0 ? 'green' : 'red')">
+        Sum:
+        <v data="sum"></v>
+      </p>
+      <button onClick="data.foo.push(1)">Plus 1</button>
+      <button onClick="foo.push(-1)">Minus 1</button>
+      <button onClick="foo.pop()">Pop top</button>
+      <button onClick="bar++">Plus bar</button>
+      <button onClick="foo[foo.length - 2] += 2">Plus 2</button>
+      <t-if cond="sum % 2 === 0"> It's even! </t-if>
+      <t-else> It's odd! </t-else>
+      <br />
+      <p>
+        <code>data.foo</code>
+        content:
+      </p>
+      [
+      <t-for data="currentNumber in foo">
+        <span onclick="alert(`You clicked: ${currentNumber}`)">
+          <t-if cond="currentNumber > 0">
+            <v data="`${currentNumber}`"></v>,
+          </t-if>
+          <t-else>
+            &larr; 0
+          </t-else>
+        </span>
+      </t-for>
+      <t-if cond="foo.length && foo[foo.length - 1] > 0">
+        <span>
+          <v data="`${foo[foo.length - 1]}`"></v>
+        </span>
+      </t-if>
+      ]
+      <t-get src="./test.json" type="json">
+        <v data="name"></v>
+      </t-get>
     </div>
-    <t-get src="./test.txt" type="text"></t-get>
-  </body>
-  <script>
-    // mount 10000: 200ms / patch 10000: 334ms
-    // mount 100000: 2129ms / patch 100000: 3390ms
-    console.time("mount");
-    const app = new TNT.TNTApp()
-      .useData({
-        foo: [],
-        bar: 0,
-      })
-      .useComputed({
-        sum() {
-          let sum = 0;
-          data.foo.forEach((v) => (sum += v));
-          return sum;
-        },
-      })
-      .useEffect(() => {
-        console.log(`Sum changed: ${data.sum}`);
-      })
-      .onMounted((app) => {
-        console.timeEnd("mount");
-        console.log("App mounted!");
-      })
-      .mount(document.getElementById("root"));
-    data.foo = [233];
-  </script>
+  </div>
+</body>
+<script>
+  // mount 10000: 200ms / patch 10000: 334ms
+  // mount 100000: 2129ms / patch 100000: 3390ms
+  console.time("mount");
+  const app = new TNT.TNTApp()
+    .useData({
+      nae: 114514,
+      foo: [],
+      bar: 5,
+    })
+    .useComputed({
+      sum() {
+        let sum = 0;
+        data.foo.forEach((v) => (sum += v));
+        return sum;
+      },
+    })
+    .useEffect(() => {
+      console.log(`Sum changed: ${data.sum}`);
+    })
+    .onMounted((app) => {
+      console.timeEnd("mount");
+      console.log("App mounted!");
+    })
+    .mount(document.getElementById("root"));
+  data.foo = [233];
+</script>
+
 </html>

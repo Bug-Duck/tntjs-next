@@ -12,7 +12,6 @@ export interface RenderedContent {
   /** A collection of variable values to inject into the children renderers. */
   injectVariables?: Record<string, string>;
 }
-
 /** A standard renderer model for builtin or custom renderers. */
 export interface Renderer {
   /**
