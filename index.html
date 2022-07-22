@@ -71,6 +71,8 @@
   </div>
 </body>
 <script>
+  TNT.Router
+    .useRoute()
   // mount 10000: 200ms / patch 10000: 334ms
   // mount 100000: 2129ms / patch 100000: 3390ms
   console.time("mount");
@@ -96,9 +98,6 @@
     })
     .mount(document.getElementById("root"));
   data.foo = [233];
-  console.log(TNT.route);
-  const page1 = new TNT.route("pg1", document.getElementById("page1"));
-  page1.toggle()
 </script>
 
 </html>

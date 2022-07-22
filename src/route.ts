@@ -1,24 +1,69 @@
-export class route {
-  #route: String;
-  #pageElementObject: HTMLElement;
+export class Route {
+  #routeList: r[];
+  #main: String;
 
-  /**
-   * Initialization a route.
-   * @param route The route's name, like: www.xxx.com/x#page1. The "page1" is routeName
-   * @param ele The element object to which the route is bound
-   */
-  constructor(route: String, ele: HTMLElement) {
-    this.#route = route;
-    this.#pageElementObject = ele;
-    if (window.location.hash === this.#route) {
-      this.#pageElementObject.style.display = "none";
+  constructor() {
+    /**
+     * 1.第一次渲染,调用change
+     * 2.当hash(#后面的值)发生变化,调用一次change
+     * 3.change变化之后,改变url hash的值
+     */
+    this.#change(window.location.hash.replace(/#/, ""));
+    window.onhashchange = () => {
+      this.#change(window.location.hash.replace(/#/, ""));
+    };
+  }
+
+  useRoute(obj: r) {
+    this.#routeList.push(obj);
+  }
+
+  useMainRoute(path: String) {
+    this.#main = path;
+  }
+
+  #change(path: String) {
+    /** */
+    if (typeof this.#main === "undefined") return;
+    if (path === "") {
+      try {
+        this.#routeList.forEach((i) => {
+          if (i.path === this.#main) {
+            i.ele.style.visibility = "visible";
+            throw new Error("break");
+          }
+        });
+      } catch (e) {
+        if (e !== "break") throw e;
+      }
+    } else {
+      this.#routeList.forEach((i) => {
+        if (i.path !== path) {
+          i.ele.style.visibility = "hidden";
+          window.location.hash = path.toString();
+        }
+      });
     }
   }
+}
 
-  /**
-   * checkout route for the page
-   */
-  toggle() {
-    window.location.href = `${location.search}#${this.#route}`;
+export class r {
+  #path: String;
+  #pageElementObject: HTMLElement;
+
+  constructor(path: String, pageElementObject: HTMLElement) {
+    this.#pageElementObject = pageElementObject;
+    this.#path = path;
+  }
+
+  get path() {
+    return this.#path;
+  }
+
+  get ele() {
+    return this.#pageElementObject;
   }
 }
+
+const Router = new Route();
+export default Router;
