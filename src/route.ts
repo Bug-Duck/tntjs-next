@@ -32,13 +32,12 @@ export class Route {
    * @param {String} path main page path
    * @returns {any}
    */
-  useMainRoute(path: String) {
+  useMainRoute(path: String): any {
     this.#main = path;
-    this.#change(path);
   }
 
   toggle(path: String) {
-    window.location.hash = path.toString();
+    window.history.pushState({}, document.title, path);
   }
 
   #change(path: String) {
