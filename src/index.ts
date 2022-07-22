@@ -271,3 +271,4 @@ export {
   track,
 } from "./reactivity";
 export { h, mount, patch } from "./vdom";
+export { Router, Route, r } from "./route";

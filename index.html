@@ -20,61 +20,64 @@
 
 <body>
   <div id="root">
-    <div>
-      <h1>Counter</h1>
-      <v data="n"></v>
-      Bar: <v data="bar"></v>
-      <p :class="(sum % 2 === 0 ? 'green' : 'red')">
-        Sum:
-        <v data="sum"></v>
-      </p>
-      <button onClick="data.foo.push(1)">Plus 1</button>
-      <button onClick="foo.push(-1)">Minus 1</button>
-      <button onClick="foo.pop()">Pop top</button>
-      <button onClick="bar++">Plus bar</button>
-      <button onClick="foo[foo.length - 2] += 2">Plus 2</button>
-      <t-if cond="sum % 2 === 0"> It's even! </t-if>
-      <t-else> It's odd! </t-else>
-      <br />
-      <p>
-        <code>data.foo</code>
-        content:
-      </p>
-      [
-      <t-for data="currentNumber in foo">
-        <span onclick="alert(`You clicked: ${currentNumber}`)">
-          <t-if cond="currentNumber > 0">
-            <v data="`${currentNumber}`"></v>,
-          </t-if>
-          <t-else>
-            &larr; 0
-          </t-else>
-        </span>
-      </t-for>
-      <t-if cond="foo.length && foo[foo.length - 1] > 0">
-        <span>
-          <v data="`${foo[foo.length - 1]}`"></v>
-        </span>
-      </t-if>
-      ]<br/><br/><br/>
-      <t-get src="https://acbox.rth.app/public/data.json" type="json" data="data=233333">
-        姓名 <v data="name"></v><br/>
-        年龄 <v data="age"></v><br/>
-        语言 <v data="language"></v><br/>
-        请求状态码 <v data="requestData.code"></v><br/>
-        请求文字 <v data="requestData.text"></v>
-      </t-get>
-      <div id="page1">
-        <h1>Hello world!</h1>
-      </div>
+    <div id="page1">
+        <h1>Counter</h1>
+        <v data="n"></v>
+        Bar: <v data="bar"></v>
+        <p :class="(sum % 2 === 0 ? 'green' : 'red')">
+          Sum:
+          <v data="sum"></v>
+        </p>
+        <button onClick="data.foo.push(1)">Plus 1</button>
+        <button onClick="foo.push(-1)">Minus 1</button>
+        <button onClick="foo.pop()">Pop top</button>
+        <button onClick="bar++">Plus bar</button>
+        <button onClick="foo[foo.length - 2] += 2">Plus 2</button>
+        <t-if cond="sum % 2 === 0"> It's even! </t-if>
+        <t-else> It's odd! </t-else>
+        <br />
+        <p>
+          <code>data.foo</code>
+          content:
+        </p>
+        [
+        <t-for data="currentNumber in foo">
+          <span onclick="alert(`You clicked: ${currentNumber}`)">
+            <t-if cond="currentNumber > 0">
+              <v data="`${currentNumber}`"></v>,
+            </t-if>
+            <t-else>
+              &larr; 0
+            </t-else>
+          </span>
+        </t-for>
+        <t-if cond="foo.length && foo[foo.length - 1] > 0">
+          <span>
+            <v data="`${foo[foo.length - 1]}`"></v>
+          </span>
+        </t-if>
+        ]<br/><br/><br/>
+        <t-get src="https://acbox.rth.app/public/data.json" type="json" data="data=233333">
+          姓名 <v data="name"></v><br/>
+          年龄 <v data="age"></v><br/>
+          语言 <v data="language"></v><br/>
+          请求状态码 <v data="requestData.code"></v><br/>
+          请求文字 <v data="requestData.text"></v>
+        </t-get>
+    </div>
+    <div id="page2">
+        <h1>Page2</h1>
     </div>
   </div>
+  <button onclick="routeToPage1()">page1</button>
+  <button onclick="routeToPage2()">page2</button>
 </body>
 <script>
-  TNT.Router
-    .useRoute()
+
   // mount 10000: 200ms / patch 10000: 334ms
   // mount 100000: 2129ms / patch 100000: 3390ms
+    console.log(TNT)
+
   console.time("mount");
   const app = new TNT.TNTApp()
     .useData({
@@ -98,6 +101,21 @@
     })
     .mount(document.getElementById("root"));
   data.foo = [233];
+
+  TNT.Router.useRoute(new
+    TNT.r("/page1", document.querySelector("#page1"))
+  );
+  TNT.Router.useRoute(new
+    TNT.r("/page2", document.querySelector("#page2"))
+  );
+
+  function routeToPage1() {
+    TNT.Router.useMainRoute("/page1")
+  }
+  function routeToPage2() {
+    TNT.Router.useMainRoute("/page2")
+  }
+    
 </script>
 
 </html>
