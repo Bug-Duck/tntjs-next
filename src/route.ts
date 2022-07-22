@@ -15,11 +15,23 @@ export class Route {
     this.#routeList = [];
   }
 
+  /**
+   * load the route
+   * @date 2022-07-22
+   * @param {r} obj path and element (route object)
+   * @returns {any}
+   */
   useRoute(obj: r) {
     this.#routeList.push(obj);
     this.#change(obj.path);
   }
 
+  /**
+   * set the router main page
+   * @date 2022-07-22
+   * @param {String} path main page path
+   * @returns {any}
+   */
   useMainRoute(path: String) {
     this.#main = path;
     this.#change(path);
