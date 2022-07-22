@@ -34,6 +34,8 @@ export class Route {
           if (i.path === this.#main) {
             i.ele.style.visibility = "visible";
             throw new Error("break");
+          } else {
+            i.ele.style.visibility = "hidden";
           }
         });
       } catch (e) {
@@ -44,6 +46,8 @@ export class Route {
         if (i.path !== path) {
           i.ele.style.visibility = "hidden";
           window.location.hash = path.toString();
+        } else {
+          i.ele.style.visibility = "visible";
         }
       });
     }
