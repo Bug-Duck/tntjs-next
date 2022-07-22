@@ -8,24 +8,36 @@ export class Route {
      * 2.当hash(#后面的值)发生变化,调用一次change
      * 3.change变化之后,改变url hash的值
      */
-    this.change(window.location.hash.replace(/#/, ""));
+    this.#change(window.location.hash.replace(/#/, ""));
     window.onhashchange = () => {
-      this.change(window.location.hash.replace(/#/, ""));
+      this.#change(window.location.hash.replace(/#/, ""));
     };
     this.#routeList = [];
   }
 
+  /**
+   * load the route
+   * @date 2022-07-22
+   * @param {r} obj path and element (route object)
+   * @returns {any}
+   */
   useRoute(obj: r) {
     this.#routeList.push(obj);
-    this.change(obj.path);
+    this.#change(obj.path);
   }
 
+  /**
+   * set the router main page
+   * @date 2022-07-22
+   * @param {String} path main page path
+   * @returns {any}
+   */
   useMainRoute(path: String) {
     this.#main = path;
-    this.change(path);
+    this.#change(path);
   }
 
-  change(path: String) {
+  #change(path: String) {
     /** */
     if (typeof this.#main === "undefined") return;
     if (path === "") {
