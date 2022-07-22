@@ -64,6 +64,9 @@
         请求状态码 <v data="requestData.code"></v><br/>
         请求文字 <v data="requestData.text"></v>
       </t-get>
+      <div id="page1">
+        <h1>Hello world!</h1>
+      </div>
     </div>
   </div>
 </body>
@@ -93,6 +96,9 @@
     })
     .mount(document.getElementById("root"));
   data.foo = [233];
+  console.log(TNT.route);
+  const page1 = new TNT.route("pg1", document.getElementById("page1"));
+  page1.toggle()
 </script>
 
 </html>
