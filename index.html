@@ -69,15 +69,12 @@
         <h1>Page2</h1>
     </div>
   </div>
-  <button onclick="routeToPage1()">page1</button>
-  <button onclick="routeToPage2()">page2</button>
+  <button onclick="TNT.Router.toggle(`page1`)">page1</button>
+  <button onclick="TNT.Router.toggle(`page2`)">page2</button>
 </body>
 <script>
-
   // mount 10000: 200ms / patch 10000: 334ms
   // mount 100000: 2129ms / patch 100000: 3390ms
-    console.log(TNT)
-
   console.time("mount");
   const app = new TNT.TNTApp()
     .useData({
@@ -101,20 +98,11 @@
     })
     .mount(document.getElementById("root"));
   data.foo = [233];
-
-  TNT.Router.useMainRoute("/page1")
-
-  function routeToPage1() {
-    TNT.Router.useRoute(new
-      TNT.r("/page1", document.querySelector("#page1"))
-    );
-  }
-  function routeToPage2() {
-     TNT.Router.useRoute(new
-      TNT.r("/page2", document.querySelector("#page2"))
-    );
-  }
-    
+  console.log(TNT.Router.useRoute);
+  TNT.Router.useMainRoute("page1");
+  TNT.Router.useRoute(new TNT.r("page2", document.getElementById("page2")));
+  TNT.Router.useRoute(new TNT.r("page1", document.getElementById("page1")));
+    // .useMainRoute("page1");
 </script>
 
 </html>
