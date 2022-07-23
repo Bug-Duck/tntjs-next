@@ -37,7 +37,7 @@ export class Route {
   }
 
   toggle(path: String) {
-    window.history.pushState({}, document.title, path);
+    window.history.pushState({}, document.title, path.toString());
   }
 
   #change(path: String) {
